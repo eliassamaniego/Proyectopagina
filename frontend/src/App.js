@@ -8,7 +8,7 @@ function App() {
 
   const calcular = async () => {
     try {
-      const res = await fetch("http://localhost:5000/calcular", {
+      const res = await fetch("http://localhost:5001/calcular", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
