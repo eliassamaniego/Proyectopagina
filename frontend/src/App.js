@@ -1,71 +1,104 @@
 import { useState } from "react";
 
 function App() {
-  const [presion, setPresion] = useState("");
-  const [volumen, setVolumen] = useState("");
-  const [temperatura, setTemperatura] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [area, setArea] = useState("");
+  const [deltaT, setDeltaT] = useState("");
+  const [materiales, setMateriales] = useState([
+    { conductividad: "", espesor: "" },  // Suelo
+    { conductividad: "", espesor: "" },  // Paredes
+    { conductividad: "", espesor: "" },  // Techo
+    { conductividad: "", espesor: "" }   // Abertura
+  ]);
   const [resultado, setResultado] = useState(null);
 
-  const calcular = async () => {
+  const actualizarMaterial = (i, campo, valor) => {
+    const nuevos = [...materiales];
+    nuevos[i][campo] = valor;
+    setMateriales(nuevos);
+  };
+
+  const enviarDatos = async () => {
+    const caja = {
+      nombre,
+      area: parseFloat(area),
+      delta_t: parseFloat(deltaT),
+      materiales: materiales.map(m => ({
+        conductividad: parseFloat(m.conductividad),
+        espesor_mm: parseFloat(m.espesor)
+      }))
+    };
+
     try {
       const res = await fetch("http://localhost:5000/calcular", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          entrada: `${presion}+${volumen}+${temperatura}`
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cajas: [caja] })
       });
-  
+
       const data = await res.json();
-      setResultado(`Resultado del backend: ${data.resultado}`);
-    } catch (err) {
-      setResultado("Error al conectar con el backend");
+      setResultado(data);
+    } catch (error) {
+      setResultado([{ error: "Error al conectar con el servidor" }]);
     }
   };
-  
 
   return (
-    <div style={{ maxWidth: 500, margin: "0 auto", padding: 20 }}>
-      <h1>Calculadora Termodinámica</h1>
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: 20 }}>
+      <h2>Calculadora de Eficiencia Térmica</h2>
 
-      <label>Presión (Pa):</label>
       <input
-        type="number"
-        value={presion}
-        onChange={(e) => setPresion(e.target.value)}
+        type="text"
+        placeholder="Nombre de la caja"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
         style={{ width: "100%", marginBottom: 10 }}
       />
 
-      <label>Volumen (m³):</label>
       <input
         type="number"
-        value={volumen}
-        onChange={(e) => setVolumen(e.target.value)}
+        placeholder="Área (m²)"
+        value={area}
+        onChange={(e) => setArea(e.target.value)}
         style={{ width: "100%", marginBottom: 10 }}
       />
 
-      <label>Temperatura (K):</label>
       <input
         type="number"
-        value={temperatura}
-        onChange={(e) => setTemperatura(e.target.value)}
+        placeholder="Diferencia de temperatura (°C)"
+        value={deltaT}
+        onChange={(e) => setDeltaT(e.target.value)}
         style={{ width: "100%", marginBottom: 10 }}
       />
 
-      <button onClick={calcular} style={{ marginTop: 10 }}>
-        Calcular
-      </button>
+      <h4>Materiales:</h4>
+      {materiales.map((m, i) => (
+        <div key={i} style={{ marginBottom: 10 }}>
+          <input
+            type="number"
+            placeholder={`Conductividad ${i + 1}`}
+            value={m.conductividad}
+            onChange={(e) => actualizarMaterial(i, "conductividad", e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder={`Espesor (mm) ${i + 1}`}
+            value={m.espesor}
+            onChange={(e) => actualizarMaterial(i, "espesor", e.target.value)}
+          />
+        </div>
+      ))}
+
+      <button onClick={enviarDatos}>Calcular</button>
 
       {resultado && (
-        <pre style={{ backgroundColor: "#f5f5f5", padding: 10, marginTop: 20 }}>
-          {resultado}
-        </pre>
+        <div style={{ marginTop: 20 }}>
+          <h3>Resultado:</h3>
+          <pre>{JSON.stringify(resultado, null, 2)}</pre>
+        </div>
       )}
     </div>
   );
 }
 
 export default App;
-
