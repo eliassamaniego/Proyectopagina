@@ -72,31 +72,56 @@ function App() {
       />
 
       <h4>Materiales:</h4>
-      {materiales.map((m, i) => (
-        <div key={i} style={{ marginBottom: 10 }}>
-          <input
-            type="number"
-            placeholder={`Conductividad ${i + 1}`}
-            value={m.conductividad}
-            onChange={(e) => actualizarMaterial(i, "conductividad", e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder={`Espesor (mm) ${i + 1}`}
-            value={m.espesor}
-            onChange={(e) => actualizarMaterial(i, "espesor", e.target.value)}
-          />
-        </div>
+      {["Suelo", "Paredes", "Techo", "Abertura"].map((nombre, i) => (
+  <div key={i} style={{ marginBottom: 10, display: 'flex', gap: '10px', alignItems: 'center' }}>
+    <label style={{ width: 150 }}>Conductividad {nombre} (W/m·K):</label>
+    <input
+      type="number"
+      value={materiales[i].conductividad}
+      onChange={(e) => actualizarMaterial(i, "conductividad", e.target.value)}
+    />
+    <label style={{ width: 130 }}>Espesor {nombre} (mm):</label>
+    <input
+      type="number"
+      value={materiales[i].espesor}
+      onChange={(e) => actualizarMaterial(i, "espesor", e.target.value)}
+    />
+  </div>
       ))}
 
       <button onClick={enviarDatos}>Calcular</button>
 
-      {resultado && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Resultado:</h3>
-          <pre>{JSON.stringify(resultado, null, 2)}</pre>
-        </div>
-      )}
+      {resultado && resultado.length > 0 && (
+  <div style={{ marginTop: 30 }}>
+    <h3>Resultados:</h3>
+    <table border="1" cellPadding="8" style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          <th>Caja</th>
+          <th>R térmica [m²K/W]</th>
+          <th>Flujo calor [W]</th>
+          <th>Calor 10 días [J]</th>
+          <th>Masa hielo [kg]</th>
+          <th>Volumen hielo [m³]</th>
+          <th>Eficiencia térmica [%]</th>
+        </tr>
+      </thead>
+      <tbody>
+        {resultado.map((fila, index) => (
+          <tr key={index}>
+            <td>{fila.Caja}</td>
+            <td>{fila.R_termina.toFixed(3)}</td>
+            <td>{fila.Flujo_calor.toFixed(2)}</td>
+            <td>{fila.Calor_total.toLocaleString()}</td>
+            <td>{fila.Masa_hielo.toFixed(2)}</td>
+            <td>{fila.Volumen_hielo.toFixed(4)}</td>
+            <td>{fila.Eficiencia.toFixed(2)}%</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
     </div>
   );
 }
